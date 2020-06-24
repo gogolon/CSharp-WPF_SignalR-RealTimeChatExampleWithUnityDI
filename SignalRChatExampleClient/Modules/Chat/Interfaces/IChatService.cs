@@ -17,7 +17,7 @@ namespace SignalRChatExampleClient.Modules.Chat.Interfaces
         event Action ConnectionReconnecting;
         event Action ConnectionReconnected;
         event Action ConnectionClosed;
-        event Action<string, string, DateTime, MessageType> NewMessage;
+        event Action<string, string, DateTime, TimeSpan, MessageType> NewMessage;
 
         #endregion
 
@@ -31,11 +31,11 @@ namespace SignalRChatExampleClient.Modules.Chat.Interfaces
 
         Task LogoutAsync();
 
-        Task SendBroadcastMessageAsync(string message, DateTime messagePostedDateTime);
+        Task SendBroadcastMessageAsync(string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime);
 
         Task SendUnicastMessageAsync(string recipientId, string message, DateTime messagePostedDateTime);
 
-        Task SendUnicastNotificationAsync(string recipientId, string message, DateTime messagePostedDateTime);
+        Task SendUnicastNotificationAsync(string recipientId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime);
 
         #endregion
     }

@@ -7,7 +7,7 @@
              d:DesignHeight="400" Width="937">
 
     <UserControl.Resources>
-        <Style TargetType="Button">
+        <Style x:Key="GreenButton" TargetType="Button">
             <Setter Property="SnapsToDevicePixels" Value="true" />
             <Setter Property="OverridesDefaultStyle" Value="true" />
             <Setter Property="MinHeight" Value="29px" />
@@ -17,7 +17,7 @@
             <Setter Property="Template">
                 <Setter.Value>
                     <ControlTemplate TargetType="Button">
-                        <Border TextBlock.Foreground="{TemplateBinding Foreground}" x:Name="Border">
+                        <Border TextBlock.Foreground="{TemplateBinding Foreground}" TextBlock.TextAlignment="Center" x:Name="Border">
                             <Border.Background>
                                 <SolidColorBrush Color="#A2F39A" />
                             </Border.Background>
@@ -41,6 +41,58 @@
                                             <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
                                                 Storyboard.TargetName="Border">
                                                 <EasingColorKeyFrame KeyTime="0" Value="#7AB174" />
+                                            </ColorAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Disabled">
+                                        <Storyboard>
+                                            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+                                                Storyboard.TargetName="Border">
+                                                <EasingColorKeyFrame KeyTime="0" Value="#CFCFCF"/>
+                                            </ColorAnimationUsingKeyFrames>
+                                            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(TextBlock.Foreground).(SolidColorBrush.Color)"
+                                                Storyboard.TargetName="Border">
+                                                <EasingColorKeyFrame KeyTime="0" Value="#FFFFFF" />
+                                            </ColorAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                </VisualStateGroup>
+                            </VisualStateManager.VisualStateGroups>
+                            <ContentPresenter Margin="2" HorizontalAlignment="Center" VerticalAlignment="Center" RecognizesAccessKey="True" />
+                        </Border>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="RedButton" TargetType="Button" BasedOn="{StaticResource GreenButton}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border TextBlock.Foreground="{TemplateBinding Foreground}" TextBlock.TextAlignment="Center" x:Name="Border">
+                            <Border.Background>
+                                <SolidColorBrush Color="#FF6254" />
+                            </Border.Background>
+                            <VisualStateManager.VisualStateGroups>
+                                <VisualStateGroup x:Name="CommonStates">
+                                    <VisualStateGroup.Transitions>
+                                        <VisualTransition GeneratedDuration="0:0:0.5" />
+                                        <VisualTransition GeneratedDuration="0" To="Pressed" />
+                                    </VisualStateGroup.Transitions>
+                                    <VisualState x:Name="Normal" />
+                                    <VisualState x:Name="MouseOver">
+                                        <Storyboard>
+                                            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+                                                Storyboard.TargetName="Border">
+                                                <EasingColorKeyFrame KeyTime="0" Value="#D43C2f" />
+                                            </ColorAnimationUsingKeyFrames>
+                                        </Storyboard>
+                                    </VisualState>
+                                    <VisualState x:Name="Pressed">
+                                        <Storyboard>
+                                            <ColorAnimationUsingKeyFrames Storyboard.TargetProperty="(Panel.Background).(SolidColorBrush.Color)"
+                                                Storyboard.TargetName="Border">
+                                                <EasingColorKeyFrame KeyTime="0" Value="#AD2A1F" />
                                             </ColorAnimationUsingKeyFrames>
                                         </Storyboard>
                                     </VisualState>
@@ -180,12 +232,38 @@
         </Grid.ColumnDefinitions>
 
         <Border Grid.RowSpan="2" BorderThickness="0,0,1,0" BorderBrush="#FFF0F0F0">
-            <ListBox ItemsSource="{Binding Participants}" 
+            <StackPanel Orientation="Vertical">
+                <TextBox Text="{Binding SearchFilter, UpdateSourceTrigger=PropertyChanged}" Margin="10,5,10,5">
+                    <TextBox.Style>
+                        <Style TargetType="TextBox" xmlns:sys="clr-namespace:System;assembly=mscorlib">
+                            <Style.Resources>
+                                <VisualBrush x:Key="CueBannerBrush" AlignmentX="Left" AlignmentY="Center" Stretch="None">
+                                    <VisualBrush.Visual>
+                                        <Label Content="Search" Foreground="LightGray" />
+                                    </VisualBrush.Visual>
+                                </VisualBrush>
+                            </Style.Resources>
+                            <Style.Triggers>
+                                <Trigger Property="Text" Value="{x:Static sys:String.Empty}">
+                                    <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                </Trigger>
+                                <Trigger Property="Text" Value="{x:Null}">
+                                    <Setter Property="Background" Value="{StaticResource CueBannerBrush}" />
+                                </Trigger>
+                                <Trigger Property="IsKeyboardFocused" Value="True">
+                                    <Setter Property="Background" Value="White" />
+                                </Trigger>
+                            </Style.Triggers>
+                        </Style>
+                    </TextBox.Style>
+                </TextBox>
+                <ListBox ItemsSource="{Binding FilteredParticipants}" 
                      ItemTemplate="{DynamicResource ParticipantsDataTemplate}"
                      ItemContainerStyle="{DynamicResource ParticipantsListBoxItemStyle}"
                      SelectedItem="{Binding SelectedParticipantViewModel}"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
                      ScrollViewer.VerticalScrollBarVisibility="Auto"/>
+            </StackPanel>
         </Border>
 
         <ItemsControl x:Name="MessagesItemsCtrl" Grid.Column="1" Margin="0,5,0,0" 
@@ -204,13 +282,14 @@
         <Border Grid.Row="1" Grid.Column="1">
             <Grid>
                 <Grid.ColumnDefinitions>
-                    <ColumnDefinition/>
-                    <ColumnDefinition Width="160"/>
-                    <ColumnDefinition Width="160"/>
-                    <ColumnDefinition Width="160"/>
+                    <ColumnDefinition Width="150"/>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="140"/>
+                    <ColumnDefinition Width="140"/>
                 </Grid.ColumnDefinitions>
 
-                <TextBox Margin="10,10,0,10" MaxHeight="40"                                         
+                <TextBox  Margin="10,10,10,10" MaxHeight="40"                                         
                          BorderThickness="1" BorderBrush="#FFDADADA"
                          TextWrapping="Wrap" 
                          VerticalScrollBarVisibility="Auto"
@@ -239,10 +318,11 @@
                         </Style>
                     </TextBox.Style>
                 </TextBox>
-
-                <Button Grid.Column="1" Margin="10" Content="Unicast message" Command="{Binding SendMessageCommand}"/>
-                <Button Grid.Column="2" Margin="10" Content="Unicast notification" Command="{Binding SendUnicastNotificationCommand}"/>
-                <Button Grid.Column="3" Margin="10" Content="Broadcast message" Command="{Binding SendBroadcastMessageCommand}"/>
+                
+                <Button Style="{StaticResource GreenButton}" Grid.Column="1" Margin="10,5,10,5" Content="Broadcast &#xD;&#xA;message" Command="{Binding SendBroadcastMessageCommand}"/>
+                <Button Style="{StaticResource RedButton}" Grid.Column="2" Margin="10,5,10,5" Content="Broadcast special&#xD;&#xA;message" Command="{Binding SendSpecialBroadcastMessageCommand}"/>
+                <Button Style="{StaticResource GreenButton}" Grid.Column="3" Margin="10,5,10,5" Content="Unicast &#xD;&#xA;notification" Command="{Binding SendUnicastNotificationCommand}"/>
+                <Button Style="{StaticResource RedButton}" Grid.Column="4" Margin="10,5,10,5" Content="Unicast special &#xD;&#xA;notification" Command="{Binding SendSpecialUnicastNotificationCommand}"/>
             </Grid>
         </Border>
     </Grid>

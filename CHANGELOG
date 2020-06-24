@@ -1,0 +1,4 @@
+- Added special broadcast messages and notifications, which can't be closed by the recipient until MinDisplayTime passes;
+- Removed unicast messages;
+- Hid the client application in the taskbar;
+- Added searchbar for the users list;

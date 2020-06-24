@@ -14,8 +14,8 @@ namespace SignalRChatExampleClient.Modules.MainWindow.Interfaces
 
         void SendUnicastMessage(string senderConnectionId, string message, DateTime messagePostedDateTime, ParticipantViewModel selectedParticipantViewModel);
 
-        void SendBroadcastMessage(string senderConnectionId, string message, DateTime messagePostedDateTime);
+        void SendBroadcastMessage(string senderConnectionId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime);
 
-        void SendUnicastNotification(string senderConnectionId, string message, DateTime messagePostedDateTime);
+        void SendUnicastNotification(string senderConnectionId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime);
     }
 }

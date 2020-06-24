@@ -13,10 +13,10 @@ namespace SignalRChatExampleServer.Hubs.Chat
 
         void ParticipantReconnection(string reconnectionConnectionId);
 
-        void BroadcastMessage(string senderConnectionId, string message, DateTime messagePostedDateTime);
+        void BroadcastMessage(string senderConnectionId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime);
 
         void UnicastMessage(string senderConnectionId, string message, DateTime messagePostedDateTime);
 
-        void UnicastNotification(string senderConnectionId, string message, DateTime messagePostedDateTime);
+        void UnicastNotification(string senderConnectionId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime);
     }
 }

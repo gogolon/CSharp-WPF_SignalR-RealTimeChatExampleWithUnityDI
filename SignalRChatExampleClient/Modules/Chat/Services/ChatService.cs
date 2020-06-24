@@ -20,7 +20,7 @@ namespace SignalRChatExampleClient.Modules.Chat.Services
         public event Action ConnectionReconnecting;
         public event Action ConnectionReconnected;
         public event Action ConnectionClosed;
-        public event Action<string, string, DateTime, MessageType> NewMessage;
+        public event Action<string, string, DateTime, TimeSpan, MessageType> NewMessage;
 
         public async Task ConnectAsync()
         {
@@ -46,14 +46,14 @@ namespace SignalRChatExampleClient.Modules.Chat.Services
         public async Task LogoutAsync() =>
             await _hubProxy.Invoke("Logout");
 
-        public async Task SendBroadcastMessageAsync(string message, DateTime messagePostedDateTime) =>
-            await _hubProxy.Invoke("BroadcastChat", message, messagePostedDateTime);
+        public async Task SendBroadcastMessageAsync(string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime) =>
+            await _hubProxy.Invoke("BroadcastChat", message, messagePostedDateTime, minDisplayTime);
 
         public async Task SendUnicastMessageAsync(string recipientId, string message, DateTime messagePostedDateTime) =>
             await _hubProxy.Invoke("UnicastChat", recipientId, message, messagePostedDateTime);
 
-        public async Task SendUnicastNotificationAsync(string recipientId, string message, DateTime messagePostedDateTime) =>
-            await _hubProxy.Invoke("UnicastNotification", recipientId, message, messagePostedDateTime);
+        public async Task SendUnicastNotificationAsync(string recipientId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime) =>
+            await _hubProxy.Invoke("UnicastNotification", recipientId, message, messagePostedDateTime, minDisplayTime);
 
         #endregion
 
@@ -78,9 +78,9 @@ namespace SignalRChatExampleClient.Modules.Chat.Services
             _hubProxy.On<string>("ParticipantLogout", loggedOutUserName => ParticipantLoggedOut?.Invoke(loggedOutUserName));
             _hubProxy.On<string>("ParticipantDisconnection", disconnectionConnectionId => ParticipantDisconnected?.Invoke(disconnectionConnectionId));
             _hubProxy.On<string>("ParticipantReconnection", reconnectionConnectionId => ParticipantReconnected?.Invoke(reconnectionConnectionId));
-            _hubProxy.On<string, string, DateTime>("BroadcastMessage", (senderConnectionId, message, messagePostedDateTime) => NewMessage?.Invoke(senderConnectionId, message, messagePostedDateTime, MessageType.Broadcast));
-            _hubProxy.On<string, string, DateTime>("UnicastMessage", (senderConnectionId, message, messagePostedDateTime) => NewMessage?.Invoke(senderConnectionId, message, messagePostedDateTime, MessageType.Unicast));
-            _hubProxy.On<string, string, DateTime>("UnicastNotification", (senderConnectionId, message, messagePostedDateTime) => NewMessage?.Invoke(senderConnectionId, message, messagePostedDateTime, MessageType.UnicastNotification));
+            _hubProxy.On<string, string, DateTime, TimeSpan>("BroadcastMessage", (senderConnectionId, message, messagePostedDateTime, minDisplayTime) => NewMessage?.Invoke(senderConnectionId, message, messagePostedDateTime, minDisplayTime, MessageType.Broadcast));
+            _hubProxy.On<string, string, DateTime>("UnicastMessage", (senderConnectionId, message, messagePostedDateTime) => NewMessage?.Invoke(senderConnectionId, message, messagePostedDateTime, TimeSpan.Zero, MessageType.Unicast));
+            _hubProxy.On<string, string, DateTime, TimeSpan>("UnicastNotification", (senderConnectionId, message, messagePostedDateTime, minDisplayTime) => NewMessage?.Invoke(senderConnectionId, message, messagePostedDateTime, minDisplayTime, MessageType.UnicastNotification));
         }
 
         private void SubscribeToDelegates(HubConnection hubConnection)

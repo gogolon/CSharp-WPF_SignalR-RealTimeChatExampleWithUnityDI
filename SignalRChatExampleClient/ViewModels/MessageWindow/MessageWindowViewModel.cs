@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Threading.Tasks;
 using System.Windows.Input;
+using System.Windows.Threading;
 
 namespace SignalRChatExampleClient.ViewModels.MessageWindow
 {
@@ -50,6 +52,63 @@ namespace SignalRChatExampleClient.ViewModels.MessageWindow
             set
             {
                 _messagePostedTime = value;
+
+                OnPropertyChanged();
+            }
+        }
+
+        private string _closeBtnText = "Close";
+        public string CloseBtnText
+        {
+            get => _closeBtnText;
+            set 
+            { 
+                _closeBtnText = value; 
+                
+                OnPropertyChanged();
+            }
+        }
+
+        private TimeSpan _minDisplayTime;
+        private int secsElapsed = 0;
+        public TimeSpan MinDisplayTime
+        {
+            get => _minDisplayTime;
+            set
+            {
+                _minDisplayTime = value;
+                OnPropertyChanged();
+
+                if (_minDisplayTime != TimeSpan.Zero)
+                {
+                    CloseBtnText = "Close (" + _minDisplayTime.TotalSeconds.ToString() + ')';
+                    DispatcherTimer timer = new DispatcherTimer();
+                    timer.Interval = TimeSpan.FromSeconds(1); ;
+                    timer.Tick += (obj, sender) =>
+                    {
+                        if (++secsElapsed >= _minDisplayTime.TotalSeconds)
+                        {
+                            ClosingAllowed = true;
+                            CloseBtnText = "Close";
+                            timer.Stop();
+                        }
+                        else
+                            CloseBtnText = "Close (" + (_minDisplayTime.TotalSeconds - secsElapsed).ToString() + ')';
+                    };
+                    timer.Start();
+                }
+                else
+                    ClosingAllowed = true;
+            }
+        }
+
+        private bool _closingAllowed = false;
+        public bool ClosingAllowed
+        {
+            get => _closingAllowed;
+            set
+            {
+                _closingAllowed = value;
 
                 OnPropertyChanged();
             }

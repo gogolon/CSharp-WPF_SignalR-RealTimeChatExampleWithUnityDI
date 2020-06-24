@@ -8,9 +8,12 @@ using SignalRChatExampleClient.Modules.MainWindow.Interfaces;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.ComponentModel;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Windows.Data;
 using System.Windows.Input;
 
 namespace SignalRChatExampleClient.ViewModels.MainWindow
@@ -73,6 +76,8 @@ namespace SignalRChatExampleClient.ViewModels.MainWindow
             _chatService.ConnectionReconnecting += Reconnecting;
             _chatService.ConnectionReconnected += Reconnected;
             _chatService.ConnectionClosed += Disconnected;
+
+            _minDisplayTime = TimeSpan.FromSeconds(Convert.ToInt32(File.ReadAllLines("time_config.cfg")[0])); // tutaj czytam długość blokady z configu
         }
 
         #region PROPERTIES Getters/ Setters
@@ -122,6 +127,29 @@ namespace SignalRChatExampleClient.ViewModels.MainWindow
             }
         }
 
+        private TimeSpan _minDisplayTime;
+        public TimeSpan MinDisplayTime
+        {
+            get => _minDisplayTime;
+            set
+            {
+                _minDisplayTime = value;
+
+                OnPropertyChanged();
+            }
+        }
+
+        private string _searchFilter;
+        public string SearchFilter
+        {
+            get => _searchFilter;
+            set
+            {
+                _searchFilter = value;
+                FilteredParticipants.Refresh();
+            }
+        }
+
         private ObservableCollection<ParticipantViewModel> _participants = new ObservableCollection<ParticipantViewModel>();
         public ObservableCollection<ParticipantViewModel> Participants
         {
@@ -131,6 +159,27 @@ namespace SignalRChatExampleClient.ViewModels.MainWindow
                 _participants = value;
                 OnPropertyChanged();
             }
+        }
+        public ICollectionView FilteredParticipants
+        {
+            get
+            {
+                var source = CollectionViewSource.GetDefaultView(Participants);
+                source.Filter = p => ParticipantsFilter(p);
+                return source;
+            }
+        }
+
+        private bool ParticipantsFilter(object p)
+        {
+            if (string.IsNullOrEmpty(SearchFilter))
+                return true;
+
+            ParticipantViewModel participant = (ParticipantViewModel)p;
+            if (participant.Name.Contains(SearchFilter))
+                return true;
+            else
+                return false;
         }
 
         private ParticipantViewModel _selectedParticipantViewModel;
@@ -199,12 +248,24 @@ namespace SignalRChatExampleClient.ViewModels.MainWindow
                 new RelayCommandAsync(SendUnicastNotification, o =>
                     _mwvmCommandExecuteConditionsService.CanSendMessage(Message, IsConnected, _selectedParticipantViewModel)));
 
+        private ICommand _sendSpecialUnicastNotificationCommand;
+
+        public ICommand SendSpecialUnicastNotificationCommand =>
+            _sendSpecialUnicastNotificationCommand ?? (_sendSpecialUnicastNotificationCommand =
+                new RelayCommandAsync(SendSpecialUnicastNotification, o =>
+                    _mwvmCommandExecuteConditionsService.CanSendMessage(Message, IsConnected, _selectedParticipantViewModel)));
 
         private ICommand _sendBroadcastMessageCommand;
         public ICommand SendBroadcastMessageCommand =>
             _sendBroadcastMessageCommand ?? (_sendBroadcastMessageCommand = new RelayCommandAsync(
                 SendBroadcastMessage, o =>
                     _mwvmCommandExecuteConditionsService.CanSendBroadcastMessage(Message, IsConnected)));
+
+        private ICommand _sendSpecialBroadcastMessageCommand;
+        public ICommand SendSpecialBroadcastMessageCommand =>
+            _sendSpecialBroadcastMessageCommand ?? (_sendSpecialBroadcastMessageCommand = new RelayCommandAsync(
+                SendSpecialBroadcastMessage, o =>
+                 _mwvmCommandExecuteConditionsService.CanSendBroadcastMessage(Message, IsConnected)));
 
         #endregion
 
@@ -332,9 +393,19 @@ namespace SignalRChatExampleClient.ViewModels.MainWindow
 
         private async Task<bool> SendUnicastNotification()
         {
+            return await SendUnicastNotification(TimeSpan.Zero);
+        }
+
+        private async Task<bool> SendSpecialUnicastNotification()
+        {
+            return await SendUnicastNotification(MinDisplayTime);
+        }
+
+        private async Task<bool> SendUnicastNotification(TimeSpan minDisplayTime)
+        {
             try
             {
-                await _chatService.SendUnicastNotificationAsync(_selectedParticipantViewModel.ConnectionId, _message, DateTime.Now);
+                await _chatService.SendUnicastNotificationAsync(_selectedParticipantViewModel.ConnectionId, _message, DateTime.Now, minDisplayTime);
 
                 return true;
             }
@@ -355,9 +426,19 @@ namespace SignalRChatExampleClient.ViewModels.MainWindow
 
         private async Task<bool> SendBroadcastMessage()
         {
+            return await SendBroadcastMessage(TimeSpan.Zero);
+        }
+
+        private async Task<bool> SendSpecialBroadcastMessage()
+        {
+            return await SendBroadcastMessage(MinDisplayTime);
+        }
+
+        private async Task<bool> SendBroadcastMessage(TimeSpan minDisplayTime)
+        {
             try
             {
-                await _chatService.SendBroadcastMessageAsync(_message, DateTime.Now);
+                await _chatService.SendBroadcastMessageAsync(_message, DateTime.Now, minDisplayTime);
 
                 return true;
             }
@@ -436,7 +517,7 @@ namespace SignalRChatExampleClient.ViewModels.MainWindow
             }
         }
 
-        private void NewMessage(string senderConnectionId, string message, DateTime messagePostedDateTime, MessageType messageType)
+        private void NewMessage(string senderConnectionId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime, MessageType messageType)
         {
             switch (messageType)
             {
@@ -444,10 +525,10 @@ namespace SignalRChatExampleClient.ViewModels.MainWindow
                     _messageHandler.SendUnicastMessage(senderConnectionId, message, messagePostedDateTime, SelectedParticipantViewModel);
                     break;
                 case MessageType.Broadcast:
-                    _messageHandler.SendBroadcastMessage(senderConnectionId, message, messagePostedDateTime);
+                    _messageHandler.SendBroadcastMessage(senderConnectionId, message, messagePostedDateTime, minDisplayTime);
                     break;
                 case MessageType.UnicastNotification:
-                    _messageHandler.SendUnicastNotification(senderConnectionId, message, messagePostedDateTime);
+                    _messageHandler.SendUnicastNotification(senderConnectionId, message, messagePostedDateTime, minDisplayTime);
                     break;
             }
         }

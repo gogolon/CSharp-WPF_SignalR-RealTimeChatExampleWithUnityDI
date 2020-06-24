@@ -46,7 +46,8 @@ namespace SignalRChatExampleClient.Modules.MainWindow.Handlers
                 {
                     SenderName = sender.Name,
                     Message = message,
-                    MessagePostedDateTime = messagePostedDateTime
+                    MessagePostedDateTime = messagePostedDateTime,
+                    MinDisplayTime = TimeSpan.Zero
                 })).Wait();
 
             if (!(selectedParticipantViewModel != null && selectedParticipantViewModel.Name.Equals(sender.Name)))
@@ -55,18 +56,18 @@ namespace SignalRChatExampleClient.Modules.MainWindow.Handlers
             }
         }
 
-        public void SendBroadcastMessage(string senderConnectionId, string message, DateTime messagePostedDateTime)
+        public void SendBroadcastMessage(string senderConnectionId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime)
         {
             ParticipantViewModel sender = _commonParticipantOperations.GetParticipantByConnectionId(senderConnectionId);
 
-            _messageWindowService.ShowMessageWindow(MessageType.Broadcast, sender.Name, message, messagePostedDateTime);
+            _messageWindowService.ShowMessageWindow(MessageType.Broadcast, sender.Name, message, messagePostedDateTime, minDisplayTime);
         }
 
-        public void SendUnicastNotification(string senderConnectionId, string message, DateTime messagePostedDateTime)
+        public void SendUnicastNotification(string senderConnectionId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime)
         {
             ParticipantViewModel sender = _commonParticipantOperations.GetParticipantByConnectionId(senderConnectionId);
 
-            _messageWindowService.ShowMessageWindow(MessageType.UnicastNotification, sender.Name, message, messagePostedDateTime);
+            _messageWindowService.ShowMessageWindow(MessageType.UnicastNotification, sender.Name, message, messagePostedDateTime, minDisplayTime);
         }
     }
 }

@@ -70,11 +70,11 @@ namespace SignalRChatExampleServer.Hubs.Chat
             }
         }
 
-        public void BroadcastChat(string message, DateTime messagePostedDateTime)
+        public void BroadcastChat(string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime)
         {
             if (!string.IsNullOrEmpty(message))
             {
-                Clients.Others.BroadcastMessage(Context.ConnectionId, message, messagePostedDateTime);
+                Clients.Others.BroadcastMessage(Context.ConnectionId, message, messagePostedDateTime, minDisplayTime);
             }
             else
             {
@@ -107,7 +107,7 @@ namespace SignalRChatExampleServer.Hubs.Chat
             }
         }
 
-        public void UnicastNotification(string recipientId, string message, DateTime messagePostedDateTime)
+        public void UnicastNotification(string recipientId, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime)
         {
             if (!string.IsNullOrEmpty(message) &&
                 recipientId != Clients.CallerState.UserName &&
@@ -117,7 +117,7 @@ namespace SignalRChatExampleServer.Hubs.Chat
 
                 if (recipientUser != null)
                 {
-                    Clients.Client(recipientUser.ConnectionId).UnicastNotification(Context.ConnectionId, message, messagePostedDateTime);
+                    Clients.Client(recipientUser.ConnectionId).UnicastNotification(Context.ConnectionId, message, messagePostedDateTime, minDisplayTime);
                 }
                 else
                 {

@@ -8,7 +8,7 @@ namespace SignalRChatExampleClient.Modules.MessageWindow.Services
 {
     public class MessageWindowService : IMessageWindowService
     {
-        public void ShowMessageWindow(MessageType messageType, string senderName, string message, DateTime messagePostedDateTime)
+        public void ShowMessageWindow(MessageType messageType, string senderName, string message, DateTime messagePostedDateTime, TimeSpan minDisplayTime)
         {
             Application.Current.Dispatcher?.BeginInvoke(
                 System.Windows.Threading.DispatcherPriority.Background, new Action(() =>
@@ -19,6 +19,7 @@ namespace SignalRChatExampleClient.Modules.MessageWindow.Services
                             {
                                 SenderName = senderName,
                                 MessagePostedTime = messagePostedDateTime,
+                                MinDisplayTime = minDisplayTime,
                                 Content = message,
                                 WindowTitle = GetWindowTitleByMessageType(messageType),
                                 ContentTitle = GetContentTitleByMessageType(messageType)

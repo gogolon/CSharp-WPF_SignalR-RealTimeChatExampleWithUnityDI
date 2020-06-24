@@ -11,5 +11,7 @@ namespace SignalRChatExampleClient.Models
         public bool IsSenderMessage { get; set; }
 
         public string Message { get; set; }
+
+        public TimeSpan MinDisplayTime;
     }
 }
